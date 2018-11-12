@@ -38,12 +38,13 @@ void draw(){
     azul.setMemory(canal3);
     canal4.setPos(i4-=0.03,j4+=0.02);
     rosa.setMemory(canal4);
+    tela.plot();
   }
   else{
     tela.clear();
   }
   
-  tela.plot();
+ 
   
   tela.update();
 }
