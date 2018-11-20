@@ -117,10 +117,12 @@ public class Screen{
 
   private void setScreen(int[] coloring, Signal[] signals){
       int distance = 400;
+      int margins = 50;
       background(coloring[0],coloring[1],coloring[2]);
-      margins(new int[] {190,190,190},50,new int[] {0,0,0}, distance);
+      margins(new int[] {190,190,190},margins,new int[] {0,0,0}, distance);
       channels(distance, signals);
       lines();
+      scales(distance,margins);
   }
   
   private void margins(int[] marginColor, int stkW, int[] fillColor, int distance){
@@ -186,6 +188,11 @@ public class Screen{
       
       for(int i=0;i<4;i++)
           channels[i].setSignal(signals[i]);
+  }
+  
+  public void scales(int distance, int margins){
+      int space = 20;
+      rect(getSizeX()-distance+space,margins,getSizeX()-space,100);
   }
   
   public void update(){
