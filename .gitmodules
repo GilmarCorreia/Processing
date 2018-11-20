@@ -1,0 +1,3 @@
+[submodule "MagicCube2x2-MDP"]
+	path = MagicCube2x2-MDP
+	url = https://github.com/GilmarCorreia/MagicCube2x2-MDP.git
