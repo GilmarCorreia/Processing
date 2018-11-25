@@ -53,7 +53,8 @@ public class Signal{
       if (data != null){   
           float dataX = map((nano-initialTime),0,8*scaleX,tela.getZeroX(),(tela.getGridSizeX()+tela.getInitialX()-1));
           float dataY = ((uno.analogRead(this.getAnalogPort())/1023.0)*5.0);
-          dataY = map(dataY,0,6*scaleY,tela.getZeroY()-1,tela.getInitialY()+3);
+          float gnd = ((uno.analogRead(ground)/1023.0)*5.0);
+          dataY = map(dataY-gnd,-6*scaleY,6*scaleY,(tela.getInitialY()+tela.getGridSizeY())-1,tela.getInitialY()+3);
           this.data.setX(dataX);
           this.data.setY(dataY);
       }

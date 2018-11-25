@@ -3,10 +3,13 @@ import org.firmata.*;
 import processing.serial.*;
 
 Arduino uno = new Arduino(this,Arduino.list()[0],57600);
-int analogReadY = 0;
-int analogReadG = 1;
-int analogReadB = 2;
-int analogReadP = 3;
+
+int ground = 0;
+int analogReadY = 1;
+int analogReadG = 2;
+int analogReadB = 3;
+int analogReadP = 4;
+int button = 13;
 
 Screen tela;
 int w = 1450;
@@ -28,6 +31,7 @@ void settings() {
 void setup(){
   frameRate(100000);
   tela = new Screen(new Signal[]{amarelo,verde,azul,rosa},new int[]{w,h});
+  uno.pinMode(button,Arduino.INPUT);
   initialTime = System.nanoTime(); 
 }
 

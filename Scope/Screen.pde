@@ -8,8 +8,8 @@ public class Screen{
   private int xGridSize, yGridSize, initialX, initialY, zeroX, zeroY;
   private Channel channels[] = new Channel[4];
   private Signal signals[] = new Signal[4];
-  private boolean controlPlot = true, plot = false;
-
+  private boolean controlPlot = true, plot = false, buttonControl = false;
+  private int control = 0;
   
   // ------------------------------- CONSTRUTORS -------------------------------
   
@@ -209,18 +209,37 @@ public class Screen{
       float textXH = textAscent() - textDescent();
       float textYW = textWidth("Scale Y: ");
       float textYH = textAscent() - textDescent();
+      float textScaleX = textWidth("0.001 s/Div ");
+      float textScaleY = textWidth("0.001 V/Div ");
       
       int textSpace = (hei - (int)textXH - (int)textYH)/3;
       
       text("Scale X: ", getSizeX()-distance+2*space,margins+22+textSpace);
       text("Scale Y: ", getSizeX()-distance+2*space,margins+2*22+2*textSpace);
       
-      text(round(scaleX/((float)1000000000),3)+" s/Div", getSizeX()-distance+2*space+textXW,margins+22+textSpace);
-      text(round(scaleY,3)+" V/Div", getSizeX()-distance+2*space+textYW,margins+2*22+2*textSpace);
+      text(round(scaleX/((float)1000000000),3)+" s/Div ", getSizeX()-distance+2*space+textXW,margins+22+textSpace);
+      text(round(scaleY,3)+" V/Div ", getSizeX()-distance+2*space+textYW,margins+2*22+2*textSpace);
+      
+      if((control%2)!=0){
+          fill(0,255,0);
+          stroke(190);
+          strokeWeight(1);
+          rect(getSizeX()-distance+3*space+textXW+textScaleX-15,margins+22,40,textXH,3);
+          fill(0,130,0);
+          rect(getSizeX()-distance+3*space+textYW+textScaleX-15,margins+2*22+textSpace,40,textYH,3);
+      }
+      else{
+          fill(0,130,0);
+          stroke(190);
+          strokeWeight(1);
+          rect(getSizeX()-distance+3*space+textXW+textScaleX-15,margins+22,40,textXH,3);
+          fill(0,255,0);
+          rect(getSizeX()-distance+3*space+textYW+textScaleX-15,margins+2*22+textSpace,40,textYH,3);
+      }
   }
   
   public double round(double value, int places) {
-  
+      // Baseado de : http
       long factor = (long) Math.pow(10, places);
       value = value * factor;
       long tmp = Math.round(value);
@@ -230,10 +249,23 @@ public class Screen{
   public void update(){
       for(int i=0;i<4;i++)
         channels[i].setOverMouse();
-          
-      long scaleXnew = mapX(uno.analogRead(4));
-      float scaleYnew = mapY(uno.analogRead(5));
+        
+      if(uno.digitalRead(button) == 1 && buttonControl == false){
+          buttonControl = true;
+          control++;
+      }
+   
+      if(uno.digitalRead(button) ==0 && buttonControl == true)
+          buttonControl = false;
       
+      long scaleXnew = scaleX;
+      float scaleYnew = scaleY;
+      
+      if ((control%2)!=0)
+          scaleXnew = mapX(uno.analogRead(5));
+      else  
+          scaleYnew = mapY(uno.analogRead(5));
+          
       if((scaleXnew != scaleX) || (scaleYnew != scaleY)){
           scaleX = scaleXnew;
           scaleY = scaleYnew;
