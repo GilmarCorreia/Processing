@@ -7,7 +7,7 @@ public class Channel extends Counter{
   private boolean pressed, wasClicked = false, isOver=false;
   private int R,G,B, colorR, colorG, colorB;
   private String count = null;
-  private Signal signal = null;
+  public Signal signal = null;
   
   // ------------------------------- CONSTRUTORS -------------------------------
   

@@ -8,6 +8,8 @@ public class Screen{
   private int xGridSize, yGridSize, initialX, initialY, zeroX, zeroY;
   private Channel channels[] = new Channel[4];
   private Signal signals[] = new Signal[4];
+  private boolean controlPlot = true, plot = false;
+
   
   // ------------------------------- CONSTRUTORS -------------------------------
   
@@ -58,6 +60,8 @@ public class Screen{
   }
   
   private void setSignals(Signal[] signals){
+      for (int i =0;i<signals.length;i++)
+          this.signals[i] = signals[i];
       this.signals = signals;
   }
   
@@ -148,7 +152,10 @@ public class Screen{
   }
     
   private void lines(){
-
+      
+      int linesX = 8;
+      int linesY = 6;
+      
       stroke(255);
       strokeWeight(3);
       line(getInitialX(),getZeroY(),getGridSizeX()+getInitialX(),getZeroY()-1);
@@ -157,16 +164,16 @@ public class Screen{
       stroke(255);
       strokeWeight(0);
       
-      for(int j = getZeroY()+75;j<(getGridSizeY()+getInitialY());j+=75)
+      for(int j = getZeroY()+(getGridSizeY()/(linesY*2));j<(getGridSizeY()+getInitialY());j+=(getGridSizeY()/(linesY*2)))
         line(getInitialX(),j,getGridSizeX()+getInitialX(),j);
       
-      for(int j = getZeroY()-75;j>getInitialY();j-=75)
+      for(int j = getZeroY()-(getGridSizeY()/(linesY*2));j>getInitialY();j-=(getGridSizeY()/(linesY*2)))
         line(getInitialX(),j,getGridSizeX()+getInitialX(),j);
       
-      for(int i = getZeroX()+75;i<(getGridSizeX()+getInitialX());i+=75)
+      for(int i = getZeroX()+(getGridSizeX()/(linesX*2));i<(getGridSizeX()+getInitialX());i+=(getGridSizeX()/(linesX*2)))
         line(i,getInitialY(),i,getGridSizeY()+getInitialY());
       
-      for(int i = getZeroX()-75;i>getInitialX();i-=75)
+      for(int i = getZeroX()-(getGridSizeX()/(linesX*2));i>getInitialX();i-=(getGridSizeX()/(linesX*2)))
         line(i,getInitialY(),i,getGridSizeY()+getInitialY());
   }
   
@@ -192,12 +199,88 @@ public class Screen{
   
   public void scales(int distance, int margins){
       int space = 20;
-      rect(getSizeX()-distance+space,margins,getSizeX()-space,100);
+      int hei = 100;
+      
+      rect(getSizeX()-distance+space,margins,(distance-2*space),hei);
+      
+      fill(255);
+      textSize(28);
+      float textXW = textWidth("Scale X: ");
+      float textXH = textAscent() - textDescent();
+      float textYW = textWidth("Scale Y: ");
+      float textYH = textAscent() - textDescent();
+      
+      int textSpace = (hei - (int)textXH - (int)textYH)/3;
+      
+      text("Scale X: ", getSizeX()-distance+2*space,margins+22+textSpace);
+      text("Scale Y: ", getSizeX()-distance+2*space,margins+2*22+2*textSpace);
+      
+      text(round(scaleX/((float)1000000000),3)+" s/Div", getSizeX()-distance+2*space+textXW,margins+22+textSpace);
+      text(round(scaleY,3)+" V/Div", getSizeX()-distance+2*space+textYW,margins+2*22+2*textSpace);
   }
   
+  public double round(double value, int places) {
+  
+      long factor = (long) Math.pow(10, places);
+      value = value * factor;
+      long tmp = Math.round(value);
+      return (double) tmp / factor;
+  }
+
   public void update(){
       for(int i=0;i<4;i++)
         channels[i].setOverMouse();
+          
+      long scaleXnew = mapX(uno.analogRead(4));
+      float scaleYnew = mapY(uno.analogRead(5));
+      
+      if((scaleXnew != scaleX) || (scaleYnew != scaleY)){
+          scaleX = scaleXnew;
+          scaleY = scaleYnew;
+          clear();
+      }
+  }
+  
+  public long mapX(float scaleYnew){
+      float max = (float)(1024/8);    
+      
+      if(scaleYnew<max)
+          return (long)((float)0.01*(float)1000000000); 
+      else if(scaleYnew<2*max)
+          return (long)((float)0.05*(float)1000000000);
+      else if(scaleYnew<3*max)
+          return (long)((float)0.1*(float)1000000000);
+      else if(scaleYnew<4*max)
+          return (long)((float)0.5*(float)1000000000);
+      else if(scaleYnew<5*max)
+          return (long)((float)1*(float)1000000000);
+      else if(scaleYnew<6*max)
+          return (long)((float)2*(float)1000000000);
+      else if(scaleYnew<7*max)
+          return (long)((float)5*(float)1000000000);
+      
+      return (long)((float)10*(float)1000000000);          
+  }
+  
+  public float mapY(float scaleYnew){
+      float max = (float)(1024/8);    
+      
+      if(scaleYnew<max)
+          return 0.001; 
+      else if(scaleYnew<2*max)
+          return 0.01;
+      else if(scaleYnew<3*max)
+          return 0.1;
+      else if(scaleYnew<4*max)
+          return 0.5;
+      else if(scaleYnew<5*max)
+          return 1.0;
+      else if(scaleYnew<6*max)
+          return 2.0;
+      else if(scaleYnew<7*max)
+          return 5.0;
+      
+      return 10.0;          
   }
   
   public void clicked(){
@@ -206,18 +289,40 @@ public class Screen{
   }
   
   public void plot(){
-      for(int i=0;i<4;i++){
-        if(channels[i].wasClicked){
-          fill(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
-          stroke(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
-          strokeWeight(0);
-          ellipse((int)(channels[i].signal.getX())+getZeroX(),getZeroY()-(int)(channels[i].signal.getY()),2,2);
-        }
+      long nano = System.nanoTime();
+      
+      if(plot == false){
+          for(int j=0;j<2;j++){
+              for(int i = 0;i<4;i++)
+                  signals[i].getInput(nano);
+          }
+          plot = true;
+      }
+      else{
+          for(int i=0;i<4;i++){
+              float x = (signals[i].getMemoryX());
+              float y = (signals[i].getMemoryY());
+              float xprime = (signals[i].getX(nano));
+              float yprime = (signals[i].getY());
+              if((x> getInitialX() && x< (getGridSizeX()+getInitialX()))&&(y > getInitialY() && y < getGridSizeY()+getInitialY()) && (xprime> getInitialX() && xprime< (getGridSizeX()+getInitialX()))&&(yprime > getInitialY() && yprime < (getGridSizeY()+getInitialY())) && controlPlot && channels[i].wasClicked){
+                  fill(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
+                  stroke(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
+                  strokeWeight(4);
+                  line(x,y,xprime,yprime);
+              }
+          }
+          controlPlot = true;
       }
   }
   
   public void clear(){
-    setScreen(getBGColor(),signals);
+      initialTime = System.nanoTime();
+      for (int i = 0; i<4; i++){
+        if (signals[i].data != null)
+            signals[i].data.setX(getZeroX()); 
+      }
+      controlPlot = false;
+      setScreen(getBGColor(),signals);
   }
 
   @Override 

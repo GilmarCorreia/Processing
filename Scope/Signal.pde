@@ -1,4 +1,3 @@
-
 public class Signal{
   
   // -------------------------------- ATRIBUTES --------------------------------
@@ -7,26 +6,36 @@ public class Signal{
   private float[][] memory = new float[max][2];
   private int writeMemory = 0;
   private int readMemoryX = 0,readMemoryY = 0;
-  
+  private int analogPort;
+  public Coordinate data;
   
   // ------------------------------- CONSTRUTORS -------------------------------
   
-  public Signal(Coordinate channel){
+  public Signal(int analogPort){
       clearMemory();
-      setMemory(channel);
+      setAnalogPort(analogPort);
+      //setMemory(data);
   }
   
   // --------------------------- GETTERS AND SETTERS --------------------------
   
-  public void setMemory(Coordinate channel){
+  private void setAnalogPort(int analogPort){
+     this.analogPort = analogPort;
+  }
+  
+  private int getAnalogPort(){
+    return this.analogPort; 
+  }
+  
+  public void setMemory(Coordinate data){
     if(writeMemory<max){
-      this.memory[writeMemory][0] = channel.getX();  
-      this.memory[writeMemory][1] = channel.getY(); 
+      this.memory[writeMemory][0] = data.getX();  
+      this.memory[writeMemory][1] = data.getY(); 
       writeMemory++;
     }
     else{
-      this.memory[writeMemory-1][0] = channel.getX(); 
-      this.memory[writeMemory-1][1] = channel.getY(); 
+      this.memory[writeMemory-1][0] = data.getX(); 
+      this.memory[writeMemory-1][1] = data.getY(); 
     }
   }
   
@@ -39,12 +48,42 @@ public class Signal{
   
   // -------------------------------- METHODS --------------------------------- 
   
-  public float getX(){
-    return this.memory[writeMemory-1][0];   
+  
+  public void getInput(long nano){
+      if (data != null){   
+          float dataX = map((nano-initialTime),0,8*scaleX,tela.getZeroX(),(tela.getGridSizeX()+tela.getInitialX()-1));
+          float dataY = ((uno.analogRead(this.getAnalogPort())/1023.0)*5.0);
+          dataY = map(dataY,0,6*scaleY,tela.getZeroY()-1,tela.getInitialY()+3);
+          this.data.setX(dataX);
+          this.data.setY(dataY);
+      }
+      else
+          data = new Coordinate(tela.getZeroX(),tela.getZeroY());
+      
+      setMemory(data);
+  }
+  
+  public float getMemoryX(){
+      return this.memory[writeMemory-1][0];
+  }
+  
+  public float getMemoryY(){
+      return this.memory[writeMemory-1][1];
+  }
+  
+  public float getX(long nano){      
+    this.getInput(nano);
+    
+    if(this.data.getX() >= tela.getGridSizeX()+tela.getInitialX()){
+      tela.clear();
+      data.setX(tela.getZeroX());
+    }
+      
+    return this.data.getX();
   }
   
   public float getY(){
-    return this.memory[writeMemory-1][1];   
+    return this.data.getY();
   }
   
   public float getAllX(){
@@ -59,4 +98,19 @@ public class Signal{
     
     return this.memory[readMemoryY-1][1];   
   }
+  
+  //@Override
+  //public void run(){
+  //  try {
+  //    while(true){
+  //      this.data.setPos(data.getX()+0.0005,data.getY()+0.0005);
+  //      this.setMemory(this.data);
+  //      println(this.data.getX(), ", ", this.data.getY());
+  //    }
+  //  } finally {
+  //    print(data.getX(), ", ", data.getY());
+  //  }
+  //}
+  
+  
 }
