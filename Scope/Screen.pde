@@ -537,7 +537,7 @@ public class Screen{
       else if(scaleYnew<4*max)
           return 0.1;
       else if(scaleYnew<5*max)
-          return 0.2;
+          return 0.5;
       else if(scaleYnew<6*max)
           return 1.0;
       else if(scaleYnew<7*max)
@@ -599,7 +599,7 @@ public class Screen{
   }
   
   public double round(double value, int places) {
-      // Baseado de: http
+      // Baseado de: https://stackoverflow.com/questions/13749336/truncate-double-value-to-6-decimal-places
       long factor = (long) Math.pow(10, places);
       value = value * factor;
       long tmp = Math.round(value);
