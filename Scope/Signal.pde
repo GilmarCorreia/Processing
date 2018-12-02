@@ -60,10 +60,10 @@ public class Signal{
   
   public void getInput(long nano){
       if (data != null){   
-          float dataX = map((nano-initialTime),0,8*scaleX,tela.getZeroX(),(tela.getGridSizeX()+tela.getInitialX()-1));
+          float dataX = map((nano-initialTime+(offsetX*1000000)),0,tela.constX*scaleX,tela.getZeroX(),(tela.getGridSizeX()+tela.getInitialX()-1));
           float dataY = ((uno.analogRead(this.getAnalogPort())/1023.0)*arduinoVoltage);
           float gnd = ((uno.analogRead(ground)/1023.0)*arduinoVoltage);
-          dataY = map(dataY-gnd,-6.109*scaleY,6.109*scaleY,(tela.getInitialY()+tela.getGridSizeY())-1,tela.getInitialY());
+          dataY = map(dataY-gnd+offsetY,-6.09090*scaleY,6.09090*scaleY,(tela.getInitialY()+tela.getGridSizeY())-1,tela.getInitialY());
           this.data.setX(dataX);
           this.data.setY(dataY);
       }
