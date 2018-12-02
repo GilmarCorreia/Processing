@@ -3,6 +3,7 @@ import org.firmata.*;
 import processing.serial.*;
 
 Arduino uno = new Arduino(this,Arduino.list()[0],57600);
+RunProgram teste = new RunProgram();
 
 int ground = 0;
 int analogReadY = 1;
@@ -10,6 +11,7 @@ int analogReadG = 2;
 int analogReadB = 3;
 int analogReadP = 4;
 int button = 13;
+float arduinoVoltage = 4.66;
 
 Screen tela;
 int w = 1450;
@@ -32,15 +34,23 @@ void setup(){
   frameRate(100000);
   tela = new Screen(new Signal[]{amarelo,verde,azul,rosa},new int[]{w,h});
   uno.pinMode(button,Arduino.INPUT);
+  uno.pinMode(1,Arduino.OUTPUT);
   initialTime = System.nanoTime(); 
 }
 
 void draw(){
-  
-  tela.plot();
+  //thread("run");
+  tela.plot(); 
   tela.update();
 }
 
 void mouseClicked(){
   tela.clicked();
+}
+
+void run(){
+    uno.digitalWrite(1,Arduino.HIGH);
+    delay(1000);
+    uno.digitalWrite(1,Arduino.LOW);
+    delay(1000);
 }

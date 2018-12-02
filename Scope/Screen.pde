@@ -8,8 +8,11 @@ public class Screen{
   private int xGridSize, yGridSize, initialX, initialY, zeroX, zeroY;
   private Channel channels[] = new Channel[4];
   private Signal signals[] = new Signal[4];
-  private boolean controlPlot = true, plot = false, buttonControl = false;
+  private boolean controlPlot = true, plot = false, buttonControl = false, cursorControl = false;
   private int control = 0;
+  private float cursorX1, cursorX2, cursorY1, cursorY2, DX=0, DY=0;
+  
+  private float textXW , textXH ,textYW ,textYH , textX1W ,textX1H ,textX2W ,textX2H, textY1W , textY1H , textY2W , textY2H ,textDXW ,textDXH,textDYW, textDYH, textScaleX;
   
   // ------------------------------- CONSTRUTORS -------------------------------
   
@@ -18,6 +21,32 @@ public class Screen{
   }
   
   public Screen(Signal[] signals, int[] coloring, int[] size){
+    textSize(28);
+    textXW = textWidth("Scale X: ");
+    textXH = textAscent() - textDescent();
+    textYW = textWidth("Scale Y: ");
+    textYH = textAscent() - textDescent();
+    
+    textX1W = textWidth("X1: ");
+    textX1H = textAscent() - textDescent();
+        
+    textX2W = textWidth("X2: ");
+    textX2H = textAscent() - textDescent();
+    
+    textY1W = textWidth("Y1: ");
+    textY1H = textAscent() - textDescent();
+    
+    textY2W = textWidth("Y2: ");
+    textY2H = textAscent() - textDescent();
+    
+    textDXW = textWidth("DX: ");
+    textDXH = textAscent() - textDescent();
+    
+    textDYW = textWidth("DY: ");
+    textDYH = textAscent() - textDescent();
+  
+    textScaleX = textWidth("0.001 s/Div ");
+    
     setColor(coloring);
     setSize(size);
     setSignals(signals);
@@ -122,11 +151,28 @@ public class Screen{
   private void setScreen(int[] coloring, Signal[] signals){
       int distance = 400;
       int margins = 50;
+      int space = 20;
+          
+      int heightBoxScale = 100;
+          
+      int heightBoxChannels = (5*space)+30;
+      int lenghtBoxChannels = (distance-(5*space))/4;
+      int marginY_Channels = 180;
+      
+      int heightBoxCursors = (getSizeY()-(marginY_Channels+space)) - (margins+heightBoxScale+space);
+      
       background(coloring[0],coloring[1],coloring[2]);
       margins(new int[] {190,190,190},margins,new int[] {0,0,0}, distance);
-      channels(distance, signals);
-      lines();
-      scales(distance,margins);
+      
+      cursorX1=getZeroX();
+      cursorX2=getZeroX(); 
+      cursorY1=getZeroY(); 
+      cursorY2=getZeroY();
+      
+      channels(distance,space,lenghtBoxChannels,heightBoxChannels,marginY_Channels,signals);
+      lines(8,6);
+      scales(distance,margins,space,heightBoxScale);
+      cursors(distance,margins,space,heightBoxCursors,heightBoxScale);
   }
   
   private void margins(int[] marginColor, int stkW, int[] fillColor, int distance){
@@ -151,11 +197,7 @@ public class Screen{
       setZeroZero((getGridSizeX()/2)+initialX-1,(getGridSizeY()/2)+initialY-1);
   }
     
-  private void lines(){
-      
-      int linesX = 8;
-      int linesY = 6;
-      
+  private void lines(int linesX, int linesY){
       stroke(255);
       strokeWeight(3);
       line(getInitialX(),getZeroY(),getGridSizeX()+getInitialX(),getZeroY()-1);
@@ -177,16 +219,13 @@ public class Screen{
         line(i,getInitialY(),i,getGridSizeY()+getInitialY());
   }
   
-  private void channels(int distance, Signal[] signals){
-      int space = 20;
-      int len = (distance-(5*space))/4;
-      int hei = (5*space)+30;
+  private void channels(int distance, int space, int lenghtBox, int heightBox, int marginY, Signal[] signals){
       
       if(channels[0]==null){
-        channels[0] = new Channel(getSizeX()-distance+space,getSizeY()-180,len,hei,new int[]{255,255,0});
-        channels[1] = new Channel(getSizeX()-distance+2*space+len,getSizeY()-180,len,hei,new int[]{0,255,0});
-        channels[2] = new Channel(getSizeX()-distance+3*space+2*len,getSizeY()-180,len,hei,new int[]{30,144,255});
-        channels[3] = new Channel(getSizeX()-distance+4*space+3*len,getSizeY()-180,len,hei,new int[]{255,0,144});
+        channels[0] = new Channel(getSizeX()-distance+space,getSizeY()-marginY,lenghtBox,heightBox,new int[]{255,255,0});
+        channels[1] = new Channel(getSizeX()-distance+2*space+lenghtBox,getSizeY()-marginY,lenghtBox,heightBox,new int[]{0,255,0});
+        channels[2] = new Channel(getSizeX()-distance+3*space+2*lenghtBox,getSizeY()-marginY,lenghtBox,heightBox,new int[]{30,144,255});
+        channels[3] = new Channel(getSizeX()-distance+4*space+3*lenghtBox,getSizeY()-marginY,lenghtBox,heightBox,new int[]{255,0,144});
       }
       else{
         for(int i=0;i<4;i++)
@@ -197,53 +236,80 @@ public class Screen{
           channels[i].setSignal(signals[i]);
   }
   
-  public void scales(int distance, int margins){
-      int space = 20;
-      int hei = 100;
+  public void scales(int distance, int margins, int space, int heightBox){
       
-      rect(getSizeX()-distance+space,margins,(distance-2*space),hei);
+      rect(getSizeX()-distance+space,margins,(distance-2*space),heightBox);
       
       fill(255);
+      
+      int textSpace = (heightBox - (int)textXH - (int)textYH)/3;
       textSize(28);
-      float textXW = textWidth("Scale X: ");
-      float textXH = textAscent() - textDescent();
-      float textYW = textWidth("Scale Y: ");
-      float textYH = textAscent() - textDescent();
-      float textScaleX = textWidth("0.001 s/Div ");
-      float textScaleY = textWidth("0.001 V/Div ");
-      
-      int textSpace = (hei - (int)textXH - (int)textYH)/3;
-      
       text("Scale X: ", getSizeX()-distance+2*space,margins+22+textSpace);
       text("Scale Y: ", getSizeX()-distance+2*space,margins+2*22+2*textSpace);
       
       text(round(scaleX/((float)1000000000),3)+" s/Div ", getSizeX()-distance+2*space+textXW,margins+22+textSpace);
       text(round(scaleY,3)+" V/Div ", getSizeX()-distance+2*space+textYW,margins+2*22+2*textSpace);
       
-      if((control%2)!=0){
-          fill(0,255,0);
-          stroke(190);
-          strokeWeight(1);
-          rect(getSizeX()-distance+3*space+textXW+textScaleX-15,margins+22,40,textXH,3);
-          fill(0,130,0);
-          rect(getSizeX()-distance+3*space+textYW+textScaleX-15,margins+2*22+textSpace,40,textYH,3);
-      }
-      else{
-          fill(0,130,0);
-          stroke(190);
-          strokeWeight(1);
-          rect(getSizeX()-distance+3*space+textXW+textScaleX-15,margins+22,40,textXH,3);
-          fill(0,255,0);
-          rect(getSizeX()-distance+3*space+textYW+textScaleX-15,margins+2*22+textSpace,40,textYH,3);
-      }
+      fill(0,130,0);
+      stroke(190);
+      strokeWeight(1);
+      rect(getSizeX()-distance+3*space+textXW+textScaleX-15,margins+22,40,textXH,3);
+      rect(getSizeX()-distance+3*space+textXW+textScaleX-15,margins+2*22+textSpace,40,textYH,3);
+      
+      fill(0,255,0);
+      
+      if((control%8)==0)
+        rect(getSizeX()-distance+3*space+textXW+textScaleX-15,margins+22,40,textXH,3);
+      else if((control%8)==1)
+        rect(getSizeX()-distance+3*space+textYW+textScaleX-15,margins+2*22+textSpace,40,textYH,3);
   }
   
-  public double round(double value, int places) {
-      // Baseado de : http
-      long factor = (long) Math.pow(10, places);
-      value = value * factor;
-      long tmp = Math.round(value);
-      return (double) tmp / factor;
+  public void cursors(int distance, int margins, int space,int heightBox, int heightBoxScale){
+      fill(0);
+      stroke(0);
+      strokeWeight(0);
+      rect(getSizeX()-distance+space,margins+heightBoxScale+space,(distance-2*space),heightBox);
+   
+      int textSpace = (heightBox - (int)textX1H - (int)textX2H - (int)textY1H - (int)textY2H - (int)textDXH - (int)textDYH )/7;
+      
+      fill(255);
+      textSize(28);
+      text("X1: "+round(map(cursorX1,getInitialX(),getInitialX()+getGridSizeX(),-8*scaleX/1000000000,8*scaleX/1000000000),3)+" s",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textSpace);
+      text("X2: "+round(map(cursorX2,getInitialX(),getInitialX()+getGridSizeX(),-8*scaleX/1000000000,8*scaleX/1000000000),3)+" s",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+2*textSpace);
+      text("Y1: "+round(map(cursorY1,getInitialY()+getGridSizeY(),getInitialY(),-6.109*scaleY,6.109*scaleY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+3*textSpace);
+      text("Y2: "+round(map(cursorY2,getInitialY()+getGridSizeY(),getInitialY(),-6.109*scaleY,6.109*scaleY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+4*textSpace);
+      text("DX: "+round(abs(DX/1000000.0),3)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+textDXH+5*textSpace);
+      text("DY: "+round(abs(DY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+textDXH+textDYH+6*textSpace);
+      
+      fill(0,130,0);
+      stroke(190);
+      strokeWeight(1);
+      rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textSpace,40,textX1H,3);
+      rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textX1H+2*textSpace,40,textX2H,3);
+      rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textX1H+textX2H+3*textSpace,40,textY1H,3);
+      rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textX1H+textX2H+textY1H+4*textSpace,40,textY2H,3);
+      
+      fill(0,255,0);
+      if((control%8)==2)
+          rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textSpace,40,textX1H,3);
+      else if((control%8==3))
+          rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textX1H+2*textSpace,40,textX2H,3);
+      else if((control%8==4))
+          rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textX1H+textX2H+3*textSpace,40,textY1H,3);
+      else if((control%8==5))
+          rect(getSizeX()-distance+3*space+textWidth("Scale X: ")+textScaleX-15,margins+heightBoxScale+space+textX1H+textX2H+textY1H+4*textSpace,40,textY2H,3);
+          
+      if(cursorControl)
+          setCursors();
+  }
+  
+  private void setCursors(){
+      stroke(255,235,0);
+      strokeWeight(2);
+      line(cursorX1,getInitialY(),cursorX1,getInitialY()+getGridSizeY());
+      line(cursorX2,getInitialY(),cursorX2,getInitialY()+getGridSizeY());
+      line(getInitialX(),cursorY1,getInitialX()+getGridSizeX(),cursorY1);
+      line(getInitialX(),cursorY2,getInitialX()+getGridSizeX(),cursorY2);
   }
 
   public void update(){
@@ -261,16 +327,70 @@ public class Screen{
       long scaleXnew = scaleX;
       float scaleYnew = scaleY;
       
-      if ((control%2)!=0)
+      float cursorX1new = cursorX1;
+      float cursorX2new = cursorX2;
+      float cursorY1new = cursorY1;
+      float cursorY2new = cursorY1;
+      
+      DX = map(cursorX2,getInitialX(),getInitialX()+getGridSizeX(),-8*scaleX,8*scaleX)-map(cursorX1,getInitialX(),getInitialX()+getGridSizeX(),-8*scaleX,8*scaleX);
+      DY = map(cursorY2,getInitialY()+getGridSizeY(),getInitialY(),-6.109*scaleY,6.109*scaleY)-map(cursorY1,getInitialY()+getGridSizeY(),getInitialY(),-6.109*scaleY,6.109*scaleY); 
+      
+      if((control%8)==0){
+          cursorControl = false;
           scaleXnew = mapX(uno.analogRead(5));
-      else  
+      }
+      else if((control%8)==1)
           scaleYnew = mapY(uno.analogRead(5));
-          
+      else if((control%8)==2){
+          if(!cursorControl)
+              save("background.png");
+          cursorControl = true;
+          cursorX1new = mapCursorX(uno.analogRead(5));
+      }
+      else if((control%8)==3)
+          cursorX2new = mapCursorX(uno.analogRead(5));
+      else if((control%8)==4)
+          cursorY1new = mapCursorY(uno.analogRead(5));
+      else //if((control%8)==5)
+          cursorY2new = mapCursorY(uno.analogRead(5)); 
+      //else if((control%8)==6)
+          //trigger = mapX(uno.analogRead(5));
+
       if((scaleXnew != scaleX) || (scaleYnew != scaleY)){
           scaleX = scaleXnew;
           scaleY = scaleYnew;
           clear();
       }
+      
+      if((cursorX1new != cursorX1) || (cursorX2new != cursorX2) || (cursorY1new != cursorY1) || (cursorY2new != cursorY2)){
+          cursorX1 = cursorX1new; 
+          cursorX2 = cursorX2new;
+          cursorY1 = cursorY1new;
+          cursorY2 = cursorY2new;
+          
+          int distance = 400;
+          int margins = 50;
+          int space = 20;
+          
+          int heightBoxScale = 100;
+              
+          int marginY_Channels = 180;
+          
+          int heightBoxCursors = (getSizeY()-(marginY_Channels+space)) - (margins+heightBoxScale+space);
+          
+          background(loadImage("background.png"));
+          scales(distance,margins,space,heightBoxScale);
+          cursors(distance,margins,space,heightBoxCursors,heightBoxScale);
+      }
+      
+  }
+  
+  public int mapCursorX(int pot){
+      return (int)map(pot,0,1023,getInitialX(),getInitialX()+getGridSizeX());
+  }
+  
+  public float mapCursorY(int pot){
+      return (int)map(pot,0,1023,getInitialY(),getInitialY()+getGridSizeY());
   }
   
   public long mapX(float scaleYnew){
@@ -315,35 +435,31 @@ public class Screen{
       return 10.0;          
   }
   
-  public void clicked(){
-      for(int i=0;i<4;i++)
-        channels[i].setMouseClicked();
-  }
-  
-  public void plot(){
-      long nano = System.nanoTime();
-      
-      if(plot == false){
-          for(int j=0;j<2;j++){
-              for(int i = 0;i<4;i++)
-                  signals[i].getInput(nano);
-          }
-          plot = true;
-      }
-      else{
-          for(int i=0;i<4;i++){
-              float x = (signals[i].getMemoryX());
-              float y = (signals[i].getMemoryY());
-              float xprime = (signals[i].getX(nano));
-              float yprime = (signals[i].getY());
-              if((x> getInitialX() && x< (getGridSizeX()+getInitialX()))&&(y > getInitialY() && y < getGridSizeY()+getInitialY()) && (xprime> getInitialX() && xprime< (getGridSizeX()+getInitialX()))&&(yprime > getInitialY() && yprime < (getGridSizeY()+getInitialY())) && controlPlot && channels[i].wasClicked){
-                  fill(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
-                  stroke(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
-                  strokeWeight(4);
-                  line(x,y,xprime,yprime);
+  public void plot(){     
+      if(!cursorControl){
+          long nano = System.nanoTime();
+          if(plot == false){
+              for(int j=0;j<2;j++){
+                  for(int i = 0;i<4;i++)
+                      signals[i].getInput(nano);
               }
+              plot = true;
           }
-          controlPlot = true;
+          else{
+              for(int i=0;i<4;i++){
+                  float x = (signals[i].getMemoryX());
+                  float y = (signals[i].getMemoryY());
+                  float xprime = (signals[i].getX(nano));
+                  float yprime = (signals[i].getY());
+                  if((x> getInitialX() && x< (getGridSizeX()+getInitialX()))&&(y > getInitialY() && y < getGridSizeY()+getInitialY()) && (xprime> getInitialX() && xprime< (getGridSizeX()+getInitialX()))&&(yprime > getInitialY() && yprime < (getGridSizeY()+getInitialY())) && controlPlot && channels[i].wasClicked){
+                      fill(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
+                      stroke(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
+                      strokeWeight(4);
+                      line(x,y,xprime,yprime);
+                  }
+              }
+              controlPlot = true;
+          }
       }
   }
   
@@ -356,7 +472,20 @@ public class Screen{
       controlPlot = false;
       setScreen(getBGColor(),signals);
   }
-
+  
+  public void clicked(){
+      for(int i=0;i<4;i++)
+        channels[i].setMouseClicked();
+  }
+  
+  public double round(double value, int places) {
+      // Baseado de: http
+      long factor = (long) Math.pow(10, places);
+      value = value * factor;
+      long tmp = Math.round(value);
+      return (double) tmp / factor;
+  }
+  
   @Override 
   public String toString(){
     return ("Tela: \n x: " + getSizeX() + "\n y: " + getSizeY() + 

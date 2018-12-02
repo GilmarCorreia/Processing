@@ -2,7 +2,7 @@ public class Signal{
   
   // -------------------------------- ATRIBUTES --------------------------------
   
-  private int max = 1000;
+  private int max = 100000;
   private float[][] memory = new float[max][2];
   private int writeMemory = 0;
   private int readMemoryX = 0,readMemoryY = 0;
@@ -39,6 +39,15 @@ public class Signal{
     }
   }
   
+  //public void setWriteMemory(){
+  //    this.writeMemory = 1;  
+  //}
+  
+  //public void setReadMemory(){
+  //    this.readMemoryX = 0; 
+  //    this.readMemoryY = 0; 
+  //}
+  
   public void clearMemory(){
     for(int i = 0;i<memory.length;i++){
       memory[i][0] = 0;
@@ -52,9 +61,9 @@ public class Signal{
   public void getInput(long nano){
       if (data != null){   
           float dataX = map((nano-initialTime),0,8*scaleX,tela.getZeroX(),(tela.getGridSizeX()+tela.getInitialX()-1));
-          float dataY = ((uno.analogRead(this.getAnalogPort())/1023.0)*5.0);
-          float gnd = ((uno.analogRead(ground)/1023.0)*5.0);
-          dataY = map(dataY-gnd,-6*scaleY,6*scaleY,(tela.getInitialY()+tela.getGridSizeY())-1,tela.getInitialY()+3);
+          float dataY = ((uno.analogRead(this.getAnalogPort())/1023.0)*arduinoVoltage);
+          float gnd = ((uno.analogRead(ground)/1023.0)*arduinoVoltage);
+          dataY = map(dataY-gnd,-6.109*scaleY,6.109*scaleY,(tela.getInitialY()+tela.getGridSizeY())-1,tela.getInitialY());
           this.data.setX(dataX);
           this.data.setY(dataY);
       }
@@ -70,6 +79,10 @@ public class Signal{
   
   public float getMemoryY(){
       return this.memory[writeMemory-1][1];
+  }
+  
+  public long getWriteMemory(){
+      return writeMemory; 
   }
   
   public float getX(long nano){      
