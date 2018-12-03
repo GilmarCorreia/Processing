@@ -18,7 +18,7 @@ int buttonSave = 10;
 
 float offsetY = 0;
 float offsetX = 0;
-float arduinoVoltage = 4.66;
+float arduinoVoltage = 4.69;
 
 Screen tela;
 int w = 1450;
