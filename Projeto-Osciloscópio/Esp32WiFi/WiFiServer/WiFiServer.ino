@@ -72,7 +72,7 @@ void setup(){
 }
 
 int value = 0;
-
+char c[4];
 void loop(){
   WiFiClient client = server.available();   // listen for incoming clients
   
@@ -81,27 +81,44 @@ void loop(){
   if (client) {                             // if you get a client,
     Serial.println("New Client.");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected()) {            // loop while the client's connected
+    while (client.connected()) {    // loop while the client's connected
+      int i = 0;
       if (client.available()) {             // if there's bytes to read from the client,
-        uint8_t c[4];
-        client.read(c,4);
+  
+        c[i] = client.read();
+    
+        if(c[0] == 'A' || c[0] == 'D'){
+          while (client.connected() && c[i-1] != '\n' && c[i-1] != '\0') {
+            if(client.available())
+              c[++i] = client.read();
+          }
+          
+          
+          for(int k = 0; k < i;k++){
+            if(k<=1)  
+              Serial.print(c[i]);
+            else
+              Serial.print((int)(c[i]-'0'));
+          }
+          Serial.println();
+          
+          int receiveMessage = 0;
+          for(int k = 2; k < i;k++)
+            receiveMessage = receiveMessage*10+(int)(c[k]-'0');
 
-        if()
-        Serial.println((char)c[0]);
+          int sendMessage = 0;
+          if(c[0] == 'D' && c[1] == 'R'){
+            sendMessage = digitalRead(receiveMessage);       
+          }
+          else if(c[0] == 'A' && c[1] == 'R')
+            sendMessage = analogRead(receiveMessage);       
+          else if(c[0] == 'A'&& c[1] == 'D')
+            sendMessage = ads.readADC_SingleEnded(receiveMessage);    
 
-        /*
-        if(c == 'A' || c == 'R' || c == 'D' || c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9'){
-          Serial.println(c);
-          if(c.charAt(0) == 'D' && c.charAt(1) == 'R')
-            client.println(digitalRead(c.toInt()));       
-          else if(c.charAt(0) == 'A' && c.charAt(1) == 'R')
-            client.println(analogRead(c.toInt()));       
-          else if(c.charAt(0) == 'A'&& c.charAt(1) == 'D' && c.charAt(2) == 'R')
-            client.println(ads.readADC_SingleEnded(c.toInt()));       
-          else
-            client.println(0);
+          Serial.print("Mensagem enviada: ");
+          Serial.println(sendMessage);
+          client.println(sendMessage);
         } 
-        */
 
         client.println(0);
         
@@ -112,4 +129,4 @@ void loop(){
     Serial.println("Client Disconnected.");
   }
 
-}
+} 

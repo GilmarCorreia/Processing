@@ -24,7 +24,7 @@ public class ESP32WIFI{
   public int buttonCursor = 12;
   public int buttonOffset = 14;
   public int buttonSave = 27;
-  public float espVoltage = (float) 4.69;
+  public float espVoltage = (float) 3.3;
   
   public ESP32WIFI(String ipServer, int port){
     try {
