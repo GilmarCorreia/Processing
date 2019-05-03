@@ -1,7 +1,8 @@
 //ESP32SERIAL esp32 = new ESP32SERIAL();
-ESP32WIFI esp32 = new ESP32WIFI("192.168.43.108",80);
+//ESP32WIFI esp32 = new ESP32WIFI("192.168.43.108",80);
+ESP32WIFI esp32 = new ESP32WIFI("192.168.2.105",80);
 
-String folder = "Laboratório1/scope-";
+String folder = "Laboratório1\\scope-";
 
 float offsetY = 0;
 float offsetX = 0;
@@ -25,16 +26,15 @@ void settings() {
 }
 
 void setup(){
-  frameRate(10000000);
+  frameRate(10000);
+  esp32.start();
   tela = new Screen(new Signal[]{amarelo,verde,azul,rosa},new int[]{w,h});
-  initialTime = System.nanoTime(); 
+  initialTime = System.nanoTime();
 }
 
 void draw(){
-  //long teste = System.nanoTime();
   tela.plot(); 
   tela.update();
-  //println(System.nanoTime()-teste);
 }
 
 void mouseClicked(){

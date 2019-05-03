@@ -62,7 +62,7 @@ public class Signal{
       if (data != null){   
           float dataX = map((nano-initialTime+(offsetX*1000000)),0,tela.constX*scaleX,tela.getZeroX(),(tela.getGridSizeX()+tela.getInitialX()-1));
           float dataY = ((esp32.readPin(this.getAnalogPort())/(float)(esp32.bitsAD))*esp32.espVoltage);
-          float gnd = ((esp32.readPin(esp32.ground)/(float)(Math.pow(2,esp32.bitsAR)))*esp32.espVoltage);
+          float gnd = ((esp32.readPin(esp32.ground)/(float)(esp32.bitsAR))*esp32.espVoltage);
           dataY = map(dataY-gnd+offsetY,-6.09090*scaleY,6.09090*scaleY,(tela.getInitialY()+tela.getGridSizeY())-1,tela.getInitialY());
           this.data.setX(dataX);
           this.data.setY(dataY);

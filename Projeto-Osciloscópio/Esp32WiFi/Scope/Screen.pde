@@ -15,7 +15,7 @@ public class Screen{
   
   private float textXW , textXH ,textYW ,textYH , textX1W ,textX1H ,textX2W ,textX2H, textY1W , textY1H , textY2W , textY2H ,textDXW ,textDXH,textDYW, textDYH, textScaleX, textOffsetYW, textOffsetYH, textOffsetXW, textOffsetXH;
   
-  private float savePot = 511.5;
+  private float savePot = (float)(esp32.bitsAR)/2.0;
   
   final int linesX = 8;
   final int linesY = 6;
@@ -292,16 +292,27 @@ public class Screen{
    
       int textSpace = (heightBox - (int)textX1H - (int)textX2H - (int)textY1H - (int)textY2H - (int)textDXH - (int)textDYH -(int) textOffsetYH -(int) textOffsetXH)/9;
       
+      
       fill(255);
       textSize(28);
-      text("X1: "+round(map(cursorX1,getInitialX(),getInitialX()+getGridSizeX(),-constX*scaleX/1000000,constX*scaleX/1000000),1)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textSpace);
-      text("X2: "+round(map(cursorX2,getInitialX(),getInitialX()+getGridSizeX(),-constX*scaleX/1000000,constX*scaleX/1000000),1)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+2*textSpace);
-      text("Y1: "+round(map(cursorY1,getInitialY()+getGridSizeY(),getInitialY(),-6.09090*scaleY,6.09090*scaleY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+3*textSpace);
-      text("Y2: "+round(map(cursorY2,getInitialY()+getGridSizeY(),getInitialY(),-6.09090*scaleY,6.09090*scaleY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+4*textSpace);
+      if (cursorControl){
+        text("X1: "+round(map(cursorX1,getInitialX(),getInitialX()+getGridSizeX(),-constX*scaleX/1000000,constX*scaleX/1000000),1)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textSpace);
+        text("X2: "+round(map(cursorX2,getInitialX(),getInitialX()+getGridSizeX(),-constX*scaleX/1000000,constX*scaleX/1000000),1)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+2*textSpace);
+        text("Y1: "+round(map(cursorY1,getInitialY()+getGridSizeY(),getInitialY(),-6.09090*scaleY,6.09090*scaleY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+3*textSpace);
+        text("Y2: "+round(map(cursorY2,getInitialY()+getGridSizeY(),getInitialY(),-6.09090*scaleY,6.09090*scaleY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+4*textSpace);
+      }
+      else{
+        text("X1: "+round(map(cursorX1,getInitialX(),getInitialX()+getGridSizeX(),-constX,constX),1)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textSpace);
+        text("X2: "+round(map(cursorX2,getInitialX(),getInitialX()+getGridSizeX(),-constX,constX),1)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+2*textSpace);
+        text("Y1: "+round(map(cursorY1,getInitialY()+getGridSizeY(),getInitialY(),-6.09090,6.09090),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+3*textSpace);
+        text("Y2: "+round(map(cursorY2,getInitialY()+getGridSizeY(),getInitialY(),-6.09090,6.09090),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+4*textSpace);
+      }
+      
       text("DX: "+round(abs(DX/1000000.0),3)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+textDXH+5*textSpace);
       text("DY: "+round(abs(DY),3)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+textDXH+textDYH+6*textSpace);
       text("Offset Y: "+round(offsetY,1)+" V",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+textDXH+textDYH+textOffsetYH+7*textSpace);
       text("Offset X: "+round(offsetX,1)+" ms",getSizeX()-distance+2*space,margins+heightBoxScale+space+textX1H+textX2H+textY1H+textY2H+textDXH+textDYH+textOffsetYH+textOffsetXH+8*textSpace);
+      
       
       fill(0,130,0);
       stroke(190);
@@ -341,15 +352,11 @@ public class Screen{
   }
 
   public void update(){
-
-      esp32.update();    
-
+    
       for(int i=0;i<4;i++)
         channels[i].setOverMouse();
       
-      
       // CONTROLE DE APERTAR OS BOTÕES
-      
       if(esp32.readPin(esp32.buttonScale) == 1 && buttonControlScale == false){
           buttonControlScale = true;
           
@@ -399,6 +406,7 @@ public class Screen{
           buttonControlSave = true;
           showMessageDialog(null, "Esse save irá sobreescrever arquivos", "Salvando o Frame", INFORMATION_MESSAGE);
           save(folder+controlSave+".png");
+          esp32.sendImage(folder+tela.controlSave+".png");
           controlSave++;
           clear();
       }
@@ -422,6 +430,7 @@ public class Screen{
       if(esp32.readPin(esp32.buttonOffset) == 0 && buttonControlOffset == true)
           buttonControlOffset = false;
       
+      
       long scaleXnew = scaleX;
       float scaleYnew = scaleY;
       
@@ -436,8 +445,9 @@ public class Screen{
       float offsetX_new = offsetX;
       float offsetY_new = offsetY;
       
-      // CONTROLE DO POTENCIÔMETRO DE ESCALA E CURSOR
+   
       
+      // CONTROLE DO POTENCIÔMETRO DE ESCALA E CURSOR
       if((controlScale%8)==0){
           cursorControl = false;
           scaleXnew = mapX(esp32.readPin(esp32.potenciometer));
@@ -462,7 +472,6 @@ public class Screen{
           offsetX_new = mapOffsetX(esp32.readPin(esp32.potenciometer));
       
       // CLEAR AS TELAS
-      
       if((scaleXnew != scaleX) || (scaleYnew != scaleY)){
           scaleX = scaleXnew;
           scaleY = scaleYnew;
@@ -470,6 +479,8 @@ public class Screen{
           offsetX_new = offsetX;
           clear();
       }
+      
+      
       
       if((cursorX1new != cursorX1) || (cursorX2new != cursorX2) || (cursorY1new != cursorY1) || (cursorY2new != cursorY2)){
           cursorX1 = cursorX1new; 
@@ -497,18 +508,19 @@ public class Screen{
           offsetX = offsetX_new;
           clear();  
       }
+      
   }
   
   public int mapCursorX(int pot){
-      return (int)map(pot,0,(float)(Math.pow(2,esp32.bitsAR)),getInitialX(),getInitialX()+getGridSizeX());
+      return (int)map(pot,0,(float)(esp32.bitsAR),getInitialX(),getInitialX()+getGridSizeX());
   }
   
   public float mapCursorY(int pot){
-      return (int)map(pot,0,(float)(Math.pow(2,esp32.bitsAR)),getInitialY(),getInitialY()+getGridSizeY());
+      return (int)map(pot,0,(float)(esp32.bitsAR),getInitialY(),getInitialY()+getGridSizeY());
   }
   
   public long mapX(float scaleYnew){
-      float max = (float)(Math.pow(2,esp32.bitsAR)/8);    
+      float max = (float)(esp32.bitsAR)/8.0;    
       
       if(scaleYnew<max)
           return (long)((float)0.01*(float)1000000000); 
@@ -529,7 +541,7 @@ public class Screen{
   }
   
   public float mapY(float scaleYnew){
-      float max = (float)(Math.pow(2,esp32.bitsAR)/8);    
+      float max = ((float)esp32.bitsAR)/8.0;    
 
       if(scaleYnew<max)
           return 0.005; 
@@ -550,12 +562,12 @@ public class Screen{
   }
   
   public float mapOffsetY(float pot){
-      return (float)round(map(pot,0,(float)(Math.pow(2,esp32.bitsAR)),-esp32.espVoltage,esp32.espVoltage),1);
+      return (float)round(map(pot,0,(float)(esp32.bitsAR),-esp32.espVoltage,esp32.espVoltage),1);
   }
   
   public float mapOffsetX(float pot){
       savePot = pot;
-      return (float)round(map(pot,0,(float)(Math.pow(2,esp32.bitsAR)),-constX*scaleX/1000000.0,constX*scaleX/1000000.0),1);
+      return (float)round(map(pot,0,(float)(esp32.bitsAR),-constX*scaleX/1000000.0,constX*scaleX/1000000.0),1);
   }
   
   public void plot(){     
