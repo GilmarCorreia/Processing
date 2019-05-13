@@ -13,8 +13,8 @@
 // VARIÁVEIS DA CONEXÃO WIFI
   //const char* ssid     = "GilPhone";
   //const char* password = "yyyb4545";
-  const char* ssid     = "NetGil";
-  const char* password = "551138920891";
+  //const char* ssid     = "NetGil";
+  //const char* password = "551138920891";
   const int javaPort = 80;
   const int tsPort = 81;
   WiFiServer server(javaPort);

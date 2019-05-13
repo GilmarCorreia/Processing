@@ -1,6 +1,6 @@
 //ESP32SERIAL esp32 = new ESP32SERIAL();
-//ESP32WIFI esp32 = new ESP32WIFI("192.168.43.108",80);
-ESP32WIFI esp32 = new ESP32WIFI("192.168.2.105",80);
+ESP32WIFI esp32 = new ESP32WIFI("192.168.43.108",80);
+//ESP32WIFI esp32 = new ESP32WIFI("192.168.2.105",80);
 
 String folder = "Laboratório1\\scope-";
 
