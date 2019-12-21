@@ -57,13 +57,15 @@ public class Signal{
   
   // -------------------------------- METHODS --------------------------------- 
   
-  
-  public void getInput(long nano){
+  // Define as coordenadas X e Y dos valores
+  public void setInput(long nano){
       if (data != null){   
           float dataX = map((nano-initialTime+(offsetX*1000000)),0,tela.constX*scaleX,tela.getZeroX(),(tela.getGridSizeX()+tela.getInitialX()-1));
-          float dataY = ((uno.analogRead(this.getAnalogPort())/1023.0)*arduinoVoltage);
-          float gnd = ((uno.analogRead(ground)/1023.0)*arduinoVoltage);
+          float dataY = unoScope.getProbe(this.getAnalogPort());
+          float gnd = unoScope.getGround();
+          
           dataY = map(dataY-gnd+offsetY,-6.09090*scaleY,6.09090*scaleY,(tela.getInitialY()+tela.getGridSizeY())-1,tela.getInitialY());
+          
           this.data.setX(dataX);
           this.data.setY(dataY);
       }
@@ -85,9 +87,7 @@ public class Signal{
       return writeMemory; 
   }
   
-  public float getX(long nano){      
-    this.getInput(nano);
-    
+  public float getX(){      
     if(this.data.getX() >= tela.getGridSizeX()+tela.getInitialX()){
       tela.clear();
       data.setX(tela.getZeroX());

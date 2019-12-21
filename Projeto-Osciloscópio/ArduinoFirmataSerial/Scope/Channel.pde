@@ -103,6 +103,7 @@ public class Channel extends Counter{
   // -------------------------------- METHODS ---------------------------------
  
   public void setChannel(){
+ 
      fill(getR(),getG(), getB());
      strokeWeight(0);
      rect(getPosX(),getPosY(),getSizeX(),getSizeY(),50);
@@ -111,7 +112,7 @@ public class Channel extends Counter{
      textSize(16);
      float text = textWidth("channel");
      int rest = getSizeX() - (int)text;
-      
+     
      text("channel",getPosX()+(rest/2),getPosY()+35);
        
      textSize(72);
@@ -129,7 +130,7 @@ public class Channel extends Counter{
   public void setOverMouse(){
     
     if(mouseX >= getPosX() && mouseX <= (getPosX()+getSizeX()) && mouseY >= getPosY() && mouseY <= (getPosY()+getSizeY()))
-      isOver=true;
+      isOver = true;
     else
       isOver = false;
       
@@ -145,7 +146,7 @@ public class Channel extends Counter{
         setColor(230,230,230);
       }
       
-      setChannel();
+      //setChannel();
     }
     
   }

@@ -1,6 +1,6 @@
 import static javax.swing.JOptionPane.*;
 
-public class Screen{
+public class Screen extends Thread{
  
   // -------------------------------- ATRIBUTES --------------------------------
   
@@ -241,7 +241,7 @@ public class Screen{
   
   private void channels(int distance, int space, int lenghtBox, int heightBox, int marginY, Signal[] signals){
       
-      if(channels[0]==null){
+      if(channels[0]==null && channels[1]==null && channels[2]==null && channels[3]==null){
         channels[0] = new Channel(getSizeX()-distance+space,getSizeY()-marginY,lenghtBox,heightBox,new int[]{255,255,0});
         channels[1] = new Channel(getSizeX()-distance+2*space+lenghtBox,getSizeY()-marginY,lenghtBox,heightBox,new int[]{0,255,0});
         channels[2] = new Channel(getSizeX()-distance+3*space+2*lenghtBox,getSizeY()-marginY,lenghtBox,heightBox,new int[]{30,144,255});
@@ -339,14 +339,21 @@ public class Screen{
       line(getInitialX(),cursorY1,getInitialX()+getGridSizeX(),cursorY1);
       line(getInitialX(),cursorY2,getInitialX()+getGridSizeX(),cursorY2);
   }
-
+  
+  @Override
+  public void run() {
+    while(true){
+      //plot();
+      update();
+    }
+  }
   public void update(){
+    
       for(int i=0;i<4;i++)
         channels[i].setOverMouse();
       
-      // CONTROLE DE APERTAR OS BOTÕES
-      
-      if(uno.digitalRead(buttonScale) == 1 && buttonControlScale == false){
+      // Controle de apertar os botões
+      if(unoScope.getButtonScale() == 1 && buttonControlScale == false){
           buttonControlScale = true;
           
           if(controlCursor == 0 && controlOffset == 0){
@@ -371,11 +378,10 @@ public class Screen{
               clear();
           }
       }
-   
-      if(uno.digitalRead(buttonScale) == 0 && buttonControlScale == true)
+      else if(unoScope.getButtonScale() == 0 && buttonControlScale == true)
           buttonControlScale = false;
           
-      if(uno.digitalRead(buttonCursor) == 1 && buttonControlCursor == false){
+      else if(unoScope.getButtonCursor() == 1 && buttonControlCursor == false){
           buttonControlCursor = true;
           if(controlCursor == 0 && controlOffset == 0)
               controlScale = 2;
@@ -387,22 +393,20 @@ public class Screen{
           }
           controlCursor++;
       }
-   
-      if(uno.digitalRead(buttonCursor) ==0 && buttonControlCursor == true)
+      else if(unoScope.getButtonCursor() ==0 && buttonControlCursor == true)
           buttonControlCursor = false;
       
-      if(uno.digitalRead(buttonSave) == 1 && buttonControlSave == false){
+      else if(unoScope.getButtonSave() == 1 && buttonControlSave == false){
           buttonControlSave = true;
           showMessageDialog(null, "Esse save irá sobreescrever arquivos", "Salvando o Frame", INFORMATION_MESSAGE);
           save(folder+controlSave+".png");
           controlSave++;
           clear();
       }
-   
-      if(uno.digitalRead(buttonSave) == 0 && buttonControlSave == true)
+      else if(unoScope.getButtonSave() == 0 && buttonControlSave == true)
           buttonControlSave = false;
           
-      if(uno.digitalRead(buttonOffset) == 1 && buttonControlOffset == false){
+      else if(unoScope.getButtonOffset() == 1 && buttonControlOffset == false){
           buttonControlOffset = true;
           if(controlOffset == 0 && controlCursor == 0)
               controlScale = 6;
@@ -414,8 +418,7 @@ public class Screen{
           controlOffset++;
           clear();
       }
-   
-      if(uno.digitalRead(buttonOffset) == 0 && buttonControlOffset == true)
+      else if(unoScope.getButtonOffset() == 0 && buttonControlOffset == true)
           buttonControlOffset = false;
       
       long scaleXnew = scaleX;
@@ -432,33 +435,39 @@ public class Screen{
       float offsetX_new = offsetX;
       float offsetY_new = offsetY;
       
-      // CONTROLE DO POTENCIÔMETRO DE ESCALA E CURSOR
-      
-      if((controlScale%8)==0){
+      // Controle do potenciômetro, de escala e cursor.
+      switch(controlScale%8){
+        case 0:  
           cursorControl = false;
-          scaleXnew = mapX(uno.analogRead(5));
-      }
-      else if((controlScale%8)==1)
-          scaleYnew = mapY(uno.analogRead(5));
-      else if((controlScale%8)==2){
+          scaleXnew = mapX(unoScope.getPot());
+          break;
+        case 1:
+          scaleYnew = mapY(unoScope.getPot());
+          break;
+        case 2:
           if(!cursorControl)
               save("background.png");
           cursorControl = true;
-          cursorX1new = mapCursorX(uno.analogRead(5));
+          cursorX1new = mapCursorX(unoScope.getPot());
+          break;
+        case 3:
+          cursorX2new = mapCursorX(unoScope.getPot());
+          break;
+        case 4:
+          cursorY1new = mapCursorY(unoScope.getPot());
+          break;
+        case 5:
+          cursorY2new = mapCursorY(unoScope.getPot()); 
+          break;
+        case 6:
+          offsetY_new = mapOffsetY(unoScope.getPot());
+          break;
+        case 7:
+          offsetX_new = mapOffsetX(unoScope.getPot());
+          break;
       }
-      else if((controlScale%8)==3)
-          cursorX2new = mapCursorX(uno.analogRead(5));
-      else if((controlScale%8)==4)
-          cursorY1new = mapCursorY(uno.analogRead(5));
-      else if((controlScale%8)==5)
-          cursorY2new = mapCursorY(uno.analogRead(5)); 
-      else if((controlScale%8)==6)
-          offsetY_new = mapOffsetY(uno.analogRead(5));
-      else if((controlScale%8)==7)
-          offsetX_new = mapOffsetX(uno.analogRead(5));
       
-      // CLEAR AS TELAS
-      
+      // Clear das telas
       if((scaleXnew != scaleX) || (scaleYnew != scaleY)){
           scaleX = scaleXnew;
           scaleY = scaleYnew;
@@ -547,7 +556,7 @@ public class Screen{
   }
   
   public float mapOffsetY(float pot){
-      return (float)round(map(pot,0,1023,-arduinoVoltage,arduinoVoltage),1);
+    return (float)round(map(pot,0,1023,-unoScope.getArduinoVoltage(),unoScope.getArduinoVoltage()),1);
   }
   
   public float mapOffsetX(float pot){
@@ -559,26 +568,38 @@ public class Screen{
       if(!cursorControl){
           long nano = System.nanoTime();
           if(plot == false){
+              // Coleta os dois primeiro dados de todos os canais para plotar
               for(int j=0;j<2;j++){
                   for(int i = 0;i<4;i++)
-                      signals[i].getInput(nano);
+                      signals[i].setInput(nano);
               }
               plot = true;
           }
           else{
               for(int i=0;i<4;i++){
+                  // Pega os valores de X1 e Y1
                   float x = (signals[i].getMemoryX());
                   float y = (signals[i].getMemoryY());
-                  float xprime = (signals[i].getX(nano));
+                  
+                  // Pega os valores de X2 e Y2
+                  signals[i].setInput(nano);
+                  float xprime = (signals[i].getX());
                   float yprime = (signals[i].getY());
-                  if((x> getInitialX() && x< (getGridSizeX()+getInitialX()))&&(y > getInitialY() && y < getGridSizeY()+getInitialY()) && (xprime> getInitialX() && xprime< (getGridSizeX()+getInitialX()))&&(yprime > getInitialY() && yprime < (getGridSizeY()+getInitialY())) && controlPlot && channels[i].wasClicked){
+                  
+                  // Plota na tela a coordenada
+                  if((x> getInitialX() && x< (getGridSizeX()+getInitialX()))&&(y > getInitialY() && y < getGridSizeY()+getInitialY()) && 
+                     (xprime> getInitialX() && xprime< (getGridSizeX()+getInitialX()))&&(yprime > getInitialY() && yprime < (getGridSizeY()+getInitialY())) 
+                     && controlPlot && channels[i].wasClicked){
                       fill(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
                       stroke(channels[i].getColorR(),channels[i].getColorG(),channels[i].getColorB());
                       strokeWeight(4);
                       line(x,y,xprime,yprime);
                   }
+                  
               }
+              
               controlPlot = true;
+              
           }
       }
   }
